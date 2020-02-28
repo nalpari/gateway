@@ -1,0 +1,93 @@
+spring:
+  profiles:
+    active: local
+---
+server:
+  port: 8765
+
+spring:
+  profiles: local
+  application:
+    name: ZUUL
+  boot:
+    admin:
+      client:
+        url:
+          - http://localhost:8760
+
+eureka:
+  instance:
+    non-secure-port: ${server.port}
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+    
+logging:
+  level:
+    org.hibernate: debug
+    com.server: debug
+    net: debug
+  file: D:/logs/zuul-logging.log    
+
+zuul:
+  routes:
+    memberservice:
+      path: /api/member/**
+      service-id: MEMBERSERVICE
+#      url: http://localhost:32790
+      stripPrefix: false
+    boardservice:
+      path: /api/board/**
+      service-id: BOARDSERVICE
+      #      url: http://localhost:32690
+      stripPrefix: false
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            # Ribbon의 각 timeout보다 커야 기대하는대로 동작함
+            timeoutInMilliseconds: 5000
+    memberservice:
+      execution:
+        isolation:
+          thread:
+            # Ribbon의 각 timeout보다 커야 기대하는대로 동작함
+            timeoutInMilliseconds: 5000
+      circuitBreaker:
+        requestVolumeThreshold: 1   # Minimum number of request to calculate circuit breaker's health. default 20
+        errorThresholdPercentage: 50 # Error percentage to open circuit. default 50
+    boardservice:
+      execution:
+        isolation:
+          thread:
+            # Ribbon의 각 timeout보다 커야 기대하는대로 동작함
+            timeoutInMilliseconds: 5000
+      circuitBreaker:
+        requestVolumeThreshold: 1   # Minimum number of request to calculate circuit breaker's health. default 20
+        errorThresholdPercentage: 50 # Error percentage to open circuit. default 50
+
+memberservice:
+  ribbon:
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+    ConnectTimeout: 1000
+    ReadTimeout: 3000
+    MaxTotalHttpConnections: 500
+    MaxConnectionsPerHost: 100
+
+boardservice:
+  ribbon:
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+    ConnectTimeout: 1000
+    ReadTimeout: 3000
+    MaxTotalHttpConnections: 500
+    MaxConnectionsPerHost: 100
